@@ -1,0 +1,36 @@
+function AdminMemberList({ members }) {
+  return (
+    <section>
+      <h2>Business Members</h2>
+
+      {members.length === 0 ? (
+        <p>No business members found.</p>
+      ) : (
+        <ul>
+          {members.map((member) => (
+            <li key={member.id}>
+              <strong>{member.business_name}</strong>
+
+              <span>
+                {' — '}
+                {member.active ? 'Active' : 'Inactive'}
+              </span>
+
+              <div>
+                <button type="button">Edit</button>
+
+                <button type="button">
+                  {member.active ? 'Deactivate' : 'Activate'}
+                </button>
+
+                <button type="button">Delete</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+export default AdminMemberList
