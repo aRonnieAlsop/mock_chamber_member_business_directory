@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import AdminDashboard from './AdminDashboard'
 
 function AdminApp({ onLogout }) {
   const [members, setMembers] = useState([])
@@ -15,6 +16,7 @@ function AdminApp({ onLogout }) {
       .order('business_name')
 
     if (error) {
+      console.error('Error loading members:', error)
       setMessage(`Error loading members: ${error.message}`)
       setLoading(false)
       return
@@ -28,62 +30,64 @@ function AdminApp({ onLogout }) {
     loadMembers()
   }, [])
 
-async function deleteTestMember() {
-  const testMember = members.find(
-    (member) => member.business_name === 'CRUD Test Business Updated'
+  if (loading) {
+    return <p>Loading members...</p>
+  }
+
+  if (message) {
+    return <p>{message}</p>
+  }
+
+  async function handleToggleActive(member) {
+  const { error } = await supabase
+    .from('members')
+    .update({
+      active: !member.active,
+    })
+    .eq('id', member.id)
+
+  if (error) {
+    console.error('Error changing member status:', error)
+    setMessage(`Could not change member status: ${error.message}`)
+    return
+  }
+
+  await loadMembers()
+}
+async function handleDeleteMember(member) {
+  const confirmed = window.confirm(
+    `Are you sure you want to permanently delete "${member.business_name}"?\n\nThis cannot be undone.\n\nIf the business may return, choose Deactivate instead.`
   )
 
-  if (!testMember) {
-    setMessage('Updated test member not found.')
+  if (!confirmed) {
     return
   }
 
   const { error } = await supabase
     .from('members')
     .delete()
-    .eq('id', testMember.id)
+    .eq('id', member.id)
 
   if (error) {
-    setMessage(`Delete failed: ${error.message}`)
+    console.error('Error deleting member:', error)
+    setMessage(`Could not delete member: ${error.message}`)
     return
   }
 
-  setMessage('Member deleted.')
   await loadMembers()
 }
-
   return (
-    <main>
-      <h1>Chamber Admin</h1>
-
+    <>
       <button type="button" onClick={onLogout}>
         Log out
       </button>
 
-      <h2>CRUD Test</h2>
-
-   <button type="button" onClick={deleteTestMember}>
-  Delete Test Member
-</button>
-
-      {message && <p>{message}</p>}
-
-      <h2>Members</h2>
-
-      {loading && <p>Loading members...</p>}
-
-      {!loading && (
-        <ul>
-          {members.map((member) => (
-            <li key={member.id}>
-              <strong>{member.business_name}</strong>
-              {' — '}
-              {member.active ? 'Active' : 'Inactive'}
-            </li>
-          ))}
-        </ul>
-      )}
-    </main>
+ <AdminDashboard
+  members={members}
+  onToggleActive={handleToggleActive}
+  onDeleteMember={handleDeleteMember}
+/>
+    </>
   )
 }
 

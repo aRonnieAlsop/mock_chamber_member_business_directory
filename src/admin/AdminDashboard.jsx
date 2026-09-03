@@ -1,6 +1,10 @@
 import AdminMemberList from './AdminMemberList'
 
-function AdminDashboard({ members }) {
+function AdminDashboard({
+  members,
+  onToggleActive,
+  onDeleteMember,
+}) {
   return (
     <main>
       <header>
@@ -13,7 +17,11 @@ function AdminDashboard({ members }) {
         </button>
       </section>
 
-      <AdminMemberList members={members} />
+   <AdminMemberList
+  members={members}
+  onToggleActive={onToggleActive}
+  onDeleteMember={onDeleteMember}
+/>
     </main>
   )
 }

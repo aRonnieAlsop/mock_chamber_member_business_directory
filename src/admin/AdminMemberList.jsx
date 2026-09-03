@@ -1,4 +1,8 @@
-function AdminMemberList({ members }) {
+function AdminMemberList({
+  members,
+  onToggleActive,
+  onDeleteMember,
+}) {
   return (
     <section>
       <h2>Business Members</h2>
@@ -17,13 +21,23 @@ function AdminMemberList({ members }) {
               </span>
 
               <div>
-                <button type="button">Edit</button>
-
                 <button type="button">
+                  Edit
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onToggleActive(member)}
+                >
                   {member.active ? 'Deactivate' : 'Activate'}
                 </button>
 
-                <button type="button">Delete</button>
+         <button
+  type="button"
+  onClick={() => onDeleteMember(member)}
+>
+  Delete
+</button>
               </div>
             </li>
           ))}
