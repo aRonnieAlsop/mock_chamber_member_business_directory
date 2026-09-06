@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import AdminDashboard from './AdminDashboard'
+import AdminMemberForm from './AdminMemberForm'
 
 function AdminApp({ onLogout }) {
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [view, setView] = useState('dashboard')
 
   async function loadMembers() {
     setLoading(true)
@@ -26,6 +28,46 @@ function AdminApp({ onLogout }) {
     setLoading(false)
   }
 
+  async function handleToggleActive(member) {
+    const { error } = await supabase
+      .from('members')
+      .update({
+        active: !member.active,
+      })
+      .eq('id', member.id)
+
+    if (error) {
+      console.error('Error changing member status:', error)
+      setMessage(`Could not change member status: ${error.message}`)
+      return
+    }
+
+    await loadMembers()
+  }
+
+  async function handleDeleteMember(member) {
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete "${member.business_name}"?\n\nThis cannot be undone.\n\nIf the business may return, choose Deactivate instead.`
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    const { error } = await supabase
+      .from('members')
+      .delete()
+      .eq('id', member.id)
+
+    if (error) {
+      console.error('Error deleting member:', error)
+      setMessage(`Could not delete member: ${error.message}`)
+      return
+    }
+
+    await loadMembers()
+  }
+
   useEffect(() => {
     loadMembers()
   }, [])
@@ -38,55 +80,26 @@ function AdminApp({ onLogout }) {
     return <p>{message}</p>
   }
 
-  async function handleToggleActive(member) {
-  const { error } = await supabase
-    .from('members')
-    .update({
-      active: !member.active,
-    })
-    .eq('id', member.id)
-
-  if (error) {
-    console.error('Error changing member status:', error)
-    setMessage(`Could not change member status: ${error.message}`)
-    return
+  if (view === 'add-member') {
+    return (
+      <AdminMemberForm
+        onCancel={() => setView('dashboard')}
+      />
+    )
   }
 
-  await loadMembers()
-}
-async function handleDeleteMember(member) {
-  const confirmed = window.confirm(
-    `Are you sure you want to permanently delete "${member.business_name}"?\n\nThis cannot be undone.\n\nIf the business may return, choose Deactivate instead.`
-  )
-
-  if (!confirmed) {
-    return
-  }
-
-  const { error } = await supabase
-    .from('members')
-    .delete()
-    .eq('id', member.id)
-
-  if (error) {
-    console.error('Error deleting member:', error)
-    setMessage(`Could not delete member: ${error.message}`)
-    return
-  }
-
-  await loadMembers()
-}
   return (
     <>
       <button type="button" onClick={onLogout}>
         Log out
       </button>
 
- <AdminDashboard
-  members={members}
-  onToggleActive={handleToggleActive}
-  onDeleteMember={handleDeleteMember}
-/>
+      <AdminDashboard
+        members={members}
+        onToggleActive={handleToggleActive}
+        onDeleteMember={handleDeleteMember}
+        onAddMember={() => setView('add-member')}
+      />
     </>
   )
 }

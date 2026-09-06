@@ -4,6 +4,7 @@ function AdminDashboard({
   members,
   onToggleActive,
   onDeleteMember,
+  onAddMember,
 }) {
   return (
     <main>
@@ -12,16 +13,19 @@ function AdminDashboard({
       </header>
 
       <section>
-        <button type="button">
+        <button
+          type="button"
+          onClick={onAddMember}
+        >
           + Add Member
         </button>
       </section>
 
-   <AdminMemberList
-  members={members}
-  onToggleActive={onToggleActive}
-  onDeleteMember={onDeleteMember}
-/>
+      <AdminMemberList
+        members={members}
+        onToggleActive={onToggleActive}
+        onDeleteMember={onDeleteMember}
+      />
     </main>
   )
 }
